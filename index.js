@@ -14,10 +14,7 @@ app.get('/api/users', (req, res) => {
   connection.query('SELECT * FROM user', (err, results) => {
     if (err) {
       // If an error has occurred, then the client is informed of the error
-      res.status(500).json({
-        error: err.message,
-        sql: err.sql,
-      });
+      res.status(500).send(`An error occurred: ${err.message}`);
     } else {
       // If everything went well, we send the result of the SQL query as JSON
       res.json(results);
