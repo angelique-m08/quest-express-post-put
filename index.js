@@ -78,6 +78,61 @@ app.post(
   },
 );
 
+app.put('/api/users/:id', userValidationMiddlewares, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+  const { email, password, name } = req.body;
+  if (!email || !password || !name) {
+    return res.status(422).json({
+      error: 'at least one of the required fields is missing',
+    });
+  }
+  const emailRegex = /[a-z0-9._]+@[a-z0-9-]+\.[a-z]{2,3}/;
+  if (!emailRegex.test(email)) {
+    return res.status(422).json({
+      error: 'Ivalid email',
+    });
+  }
+  if (password.length < 8) {
+    return res.status(422).json({
+      error: 'Password too short (8 characters min.)',
+    });
+  }
+  const idUser = req.params.id;
+  const formData = req.body;
+  return connection.query('UPDATE user SET ? WHERE id = ?', [formData, idUser], (err, results) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({
+          error: 'Email already exists',
+        });
+      }
+      return res.status(500).json({
+        error: err.message,
+        sql: err.sql,
+      });
+    }
+    return connection.query('SELECT * FROM user WHERE id = ?', idUser, (err2, records) => {
+      if (err2) {
+        return res.status(500).json({
+          error: err2.message,
+          sql: err2.sql,
+        });
+      }
+      const modifiedUser = records[0];
+      const { password, ...user } = modifiedUser;
+      const host = req.get('host');
+      const location = `http://${host}${req.url}/${user.id}`;
+      return res
+        .status(200)
+        .set('Location', location)
+        .json(user);
+    });
+  });
+});
+
 app.listen(process.env.PORT, (err) => {
   if (err) {
     throw new Error('Something bad happened...');

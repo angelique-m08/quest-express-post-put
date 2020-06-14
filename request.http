@@ -1,0 +1,22 @@
+### GET USERS
+GET http://localhost:3000/api/users
+
+### POST USERS
+POST http://localhost:3000/api/users
+Content-Type: application/json
+
+{
+  "email": "dr@who.com",
+  "name": "doctor",
+  "password": "tardis12346"
+}
+
+### PUT USERS
+PUT http://localhost:3000/api/users/2
+Content-Type: application/json
+
+{
+  "email": "clara.oswald@doctorwho.com",
+  "name": "Clara Oswald",
+  "password": "dannypink"
+}
